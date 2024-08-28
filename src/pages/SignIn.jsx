@@ -1,22 +1,28 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import service from "../services/user.service";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../features/user/userSlice";
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
-    setLoading(true);
+    dispatch(signInStart());
     e.preventDefault();
     const { status, data } = await service.signIn(formData);
     if (status === 200) {
@@ -25,12 +31,11 @@ const SignIn = () => {
         email: "",
         password: "",
       });
-      setError(null);
+      dispatch(signInSuccess(data));
       navigate("/");
     } else {
-      setError(data.message);
+      dispatch(signInFailure(data.message));
     }
-    setLoading(false);
   };
 
   return (
